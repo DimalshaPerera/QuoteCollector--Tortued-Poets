@@ -2,40 +2,40 @@ package com.example.quotecollector.utils
 
 
 import android.content.Context
-import android.content.SharedPreferences
 
 object PreferenceHelper {
-    private const val PREF_NAME = "TorturedPoetsPrefs"
-    private const val KEY_TOKEN = "user_token"
-    private const val KEY_EMAIL = "user_email"
-    private const val KEY_IS_LOGGED_IN = "is_logged_in"
+    private const val PREF_NAME = "QuoteCollectorPrefs"
+    private const val KEY_USER_EMAIL = "user_email"
+    private const val KEY_USER_TOKEN = "user_token"
+    private const val KEY_USER_ID = "user_id"
 
-    private fun getPrefs(context: Context): SharedPreferences {
-        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-    }
-
-    fun saveUserData(context: Context, email: String, token: String) {
-        getPrefs(context).edit().apply {
-            putString(KEY_EMAIL, email)
-            putString(KEY_TOKEN, token)
-            putBoolean(KEY_IS_LOGGED_IN, true)
+    fun saveUserData(context: Context, email: String, token: String, userId: String) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putString(KEY_USER_EMAIL, email)
+            putString(KEY_USER_TOKEN, token)
+            putString(KEY_USER_ID, userId)
             apply()
         }
     }
 
-    fun isLoggedIn(context: Context): Boolean {
-        return getPrefs(context).getBoolean(KEY_IS_LOGGED_IN, false)
-    }
-
     fun getUserEmail(context: Context): String? {
-        return getPrefs(context).getString(KEY_EMAIL, null)
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_USER_EMAIL, null)
     }
 
-    fun getToken(context: Context): String? {
-        return getPrefs(context).getString(KEY_TOKEN, null)
+    fun getUserToken(context: Context): String? {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_USER_TOKEN, null)
+    }
+
+    fun getUserId(context: Context): String? {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_USER_ID, null)
     }
 
     fun clearUserData(context: Context) {
-        getPrefs(context).edit().clear().apply()
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().clear().apply()
     }
 }

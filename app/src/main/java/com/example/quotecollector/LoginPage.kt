@@ -2,6 +2,7 @@ package com.example.quotecollector
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,7 +28,6 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import com.example.quotecollector.api.RetrofitClient
 import com.example.quotecollector.components.Background
 import com.example.quotecollector.components.CustomButton
-import com.example.quotecollector.models.LoginRequest
 import com.example.quotecollector.ui.theme.ItaliannoFont
 import com.example.quotecollector.ui.theme.Poppins
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
@@ -64,18 +63,19 @@ class LoginPage : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             QuoteCollectorTheme {
-             Login(
-                 onNavigateToSignUp = {
-                     val intent = Intent(this, SignUp::class.java)
-                     startActivity(intent)
-                     finish()
-                 },
-                 onLoginSuccess = {
-                     val intent = Intent(this, Home::class.java)
-                     startActivity(intent)
-                     finish()
-                 }
-             )
+                Login(
+                    onNavigateToSignUp = {
+                        val intent = Intent(this, SignUp::class.java)
+                        startActivity(intent)
+                        finish()
+                    },
+                    onLoginSuccess = { email ->
+                        val intent = Intent(this, Home::class.java)
+                        intent.putExtra("USER_EMAIL", email)
+                        startActivity(intent)
+                        finish()
+                    }
+                )
             }
         }
     }
@@ -85,7 +85,7 @@ class LoginPage : ComponentActivity() {
 @Composable
 fun Login(
     onNavigateToSignUp: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {}
+    onLoginSuccess: (String) -> Unit = {}
 ) {
     Background()
     var email by remember { mutableStateOf("") }
@@ -192,11 +192,11 @@ fun Login(
                 )
             }
 
-            // Display error message if any
-            if (errorMessage != null) {
+
+            errorMessage?.let { error ->
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = errorMessage!!,
+                    text = error,
                     color = androidx.compose.ui.graphics.Color.Red,
                     fontFamily = Poppins,
                     fontSize = 14.sp,
@@ -220,21 +220,24 @@ fun Login(
                             errorMessage = null
                             isLoading = true
 
-                            // Call the login API
+                            // Call the login API with MockAPI
                             scope.launch {
                                 try {
-                                    val request = LoginRequest(email, password)
-                                    val response = RetrofitClient.apiService.login(request)
+                                    // Get all users with matching email
+                                    val response = RetrofitClient.apiService.login(email)
 
                                     if (response.isSuccessful) {
-                                        // Get response data
-                                        val responseData = response.body()
-                                        if (responseData != null) {
+                                        val users = response.body()
+                                        // Find user with matching password
+                                        val user = users?.find { it.email == email && it.password == password }
+
+                                        if (user != null) {
                                             // Save user data to SharedPreferences
                                             PreferenceHelper.saveUserData(
                                                 context,
-                                                email,
-                                                responseData.token
+                                                user.email,
+                                                user.id,
+                                                user.id
                                             )
 
                                             // Show a toast message
@@ -246,17 +249,21 @@ fun Login(
                                                 ).show()
 
                                                 // Navigate to home screen
-                                                onLoginSuccess()
+                                                onLoginSuccess(user.email)
                                             }
+                                        } else {
+                                            errorMessage = "Invalid email or password"
                                         }
                                     } else {
                                         // Handle error response
                                         val errorBody = response.errorBody()?.string() ?: "Unknown error"
                                         errorMessage = "Login failed: $errorBody"
+                                        Log.e("LoginError", errorMessage!!)
                                     }
                                 } catch (e: Exception) {
                                     // Handle network or other exceptions
                                     errorMessage = "Error: ${e.message ?: "Unknown error"}"
+                                    Log.e("LoginException", "Exception during login", e)
                                 } finally {
                                     isLoading = false
                                 }

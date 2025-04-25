@@ -49,6 +49,7 @@ import com.example.quotecollector.api.RetrofitClient
 import com.example.quotecollector.components.Background
 import com.example.quotecollector.components.CustomButton
 import com.example.quotecollector.models.RegisterRequest
+import com.example.quotecollector.models.User
 import com.example.quotecollector.ui.theme.ItaliannoFont
 import com.example.quotecollector.ui.theme.Poppins
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
@@ -93,7 +94,8 @@ fun SignUpPage(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf("") }
+    var hasError by remember { mutableStateOf(false) }
 
     // Get context for API calls and SharedPreferences
     val context = LocalContext.current
@@ -231,10 +233,10 @@ fun SignUpPage(
             }
 
             // Display error message if any
-            if (errorMessage != null) {
+            if (hasError) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = errorMessage!!,
+                    text = errorMessage,
                     color = androidx.compose.ui.graphics.Color.Red,
                     fontFamily = Poppins,
                     fontSize = 14.sp,
@@ -250,31 +252,50 @@ fun SignUpPage(
                 onClick = {
                     // Validate inputs
                     when {
-                        email.isBlank() -> errorMessage = "Email cannot be empty"
-                        !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
+                        email.isBlank() -> {
+                            errorMessage = "Email cannot be empty"
+                            hasError = true
+                        }
+                        !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                             errorMessage = "Please enter a valid email"
-                        password.isBlank() -> errorMessage = "Password cannot be empty"
-                        password.length < 6 -> errorMessage = "Password must be at least 6 characters"
-                        password != confirmPassword -> errorMessage = "Passwords do not match"
+                            hasError = true
+                        }
+                        password.isBlank() -> {
+                            errorMessage = "Password cannot be empty"
+                            hasError = true
+                        }
+                        password.length < 6 -> {
+                            errorMessage = "Password must be at least 6 characters"
+                            hasError = true
+                        }
+                        password != confirmPassword -> {
+                            errorMessage = "Passwords do not match"
+                            hasError = true
+                        }
                         else -> {
-                            errorMessage = null
+                            hasError = false
                             isLoading = true
-
-                            // Call the register API
                             scope.launch {
                                 try {
-                                    val request = RegisterRequest(email, password)
-                                    val response = RetrofitClient.apiService.register(request)
+                                    val user = User(
+                                        email = email,
+                                        password = password,
+                                        id = "",
+                                        token = ""
+
+
+                                    )
+                                    val response = RetrofitClient.apiService.register(user)
 
                                     if (response.isSuccessful) {
-                                        // Get response data
-                                        val responseData = response.body()
-                                        if (responseData != null) {
-                                            // Save user data to SharedPreferences
+                                        // Get user data
+                                        val user = response.body()
+                                        if (user != null) {
                                             PreferenceHelper.saveUserData(
                                                 context,
                                                 email,
-                                                responseData.token
+                                                user.id,
+                                                user.id
                                             )
 
                                             // Show a toast message
@@ -291,14 +312,14 @@ fun SignUpPage(
                                         }
                                     } else {
                                         // Handle error response
-                                        val errorBody = response.errorBody()?.string() ?: "Unknown error"
-                                        errorMessage = "Registration failed: $errorBody"
-                                        errorMessage = "Registration failed: $errorBody"
-                                        Log.e("RegisterError", "Registration failed: $errorBody")
+                                        errorMessage = "Registration failed: ${response.errorBody()?.string() ?: "Unknown error"}"
+                                        hasError = true
+                                        Log.e("RegisterError", errorMessage)
                                     }
                                 } catch (e: Exception) {
                                     // Handle network or other exceptions
                                     errorMessage = "Error: ${e.message ?: "Unknown error"}"
+                                    hasError = true
                                     Log.e("RegisterException", "Exception during registration", e)
                                 } finally {
                                     isLoading = false
