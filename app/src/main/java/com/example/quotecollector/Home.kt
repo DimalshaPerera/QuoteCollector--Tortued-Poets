@@ -2,6 +2,7 @@ package com.example.quotecollector
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -52,24 +53,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.quotecollector.api.RetrofitClient
 import com.example.quotecollector.components.Background
+import com.example.quotecollector.models.Quote
 import com.example.quotecollector.ui.theme.Poppins
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
 import com.example.quotecollector.ui.theme.White
 import com.example.quotecollector.ui.theme.cardBackground
 import com.example.quotecollector.ui.theme.surfaceVariant
+import com.example.quotecollector.utils.PreferenceHelper
+import kotlinx.coroutines.launch
 
 class Home : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,6 +109,14 @@ fun HomePage(
     var newQuoteText by remember { mutableStateOf("") }
     var isEditMode by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var showSuccessMessage by remember { mutableStateOf(false) }
+    var newQuoteAuthor by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Motivation") }
+
+    // Get context and coroutine scope
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     // Sample categories
     val categories = listOf(
         "Motivation" to Icons.Default.Star,
@@ -247,6 +262,7 @@ fun HomePage(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // Quote text field
                         OutlinedTextField(
                             value = newQuoteText,
                             onValueChange = { newQuoteText = it },
@@ -268,23 +284,120 @@ fun HomePage(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Text(
-                            text = "Edit",
-                            color = White.copy(alpha = 0.6f),
-                            fontSize = 14.sp,
-                            modifier = Modifier.align(Alignment.End)
+                        // Author field
+                        OutlinedTextField(
+                            value = newQuoteAuthor,
+                            onValueChange = { newQuoteAuthor = it },
+                            placeholder = {
+                                Text(
+                                    "Author name",
+                                    color = White.copy(alpha = 0.5f)
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = White.copy(alpha = 0.3f),
+                                unfocusedBorderColor = White.copy(alpha = 0.1f),
+                                focusedTextColor = White,
+                                unfocusedTextColor = White,
+                                cursorColor = White
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Category dropdown (simplified)
+                        Text("Category: $selectedCategory", color = White.copy(alpha = 0.7f))
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            val categories = listOf("Motivation", "Love", "Life", "Philosophy")
+                            categories.forEach { category ->
+                                TextButton(
+                                    onClick = { selectedCategory = category },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        contentColor = if (selectedCategory == category) White else White.copy(alpha = 0.5f)
+                                    )
+                                ) {
+                                    Text(category)
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        // Success message
+                        if (showSuccessMessage) {
+                            Text(
+                                text = "Quote added successfully!",
+                                color = Color.Green,
+                                fontSize = 14.sp,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         Button(
-                            onClick = { /* Save quote logic */ },
+                            onClick = {
+                                if (newQuoteText.isNotBlank() && newQuoteAuthor.isNotBlank()) {
+                                    isLoading = true
+
+                                    // Get userId from preferences
+                                    val userId = PreferenceHelper.getUserId(context) ?: ""
+
+                                    // Create quote object
+                                    val quote = Quote(
+                                        text = newQuoteText,
+                                        author = newQuoteAuthor,
+                                        category = selectedCategory,
+                                        userId = userId
+                                    )
+
+                                    // Save to API
+                                    scope.launch {
+                                        try {
+                                            val response = RetrofitClient.apiService.createQuote(quote)
+
+                                            if (response.isSuccessful) {
+                                                // Clear form and show success message
+                                                newQuoteText = ""
+                                                newQuoteAuthor = ""
+                                                showSuccessMessage = true
+
+                                                // Hide success message after 3 seconds
+                                                scope.launch {
+                                                    kotlinx.coroutines.delay(3000)
+                                                    showSuccessMessage = false
+                                                }
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to add quote",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        } catch (e: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                "Error: ${e.message}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } finally {
+                                            isLoading = false
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Please enter quote text and author",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.DarkGray
                             ),
+                            enabled = !isLoading,
                             modifier = Modifier.width(100.dp)
                         ) {
-                            Text("Save", color = White)
+                            Text(if (isLoading) "Saving..." else "Save", color = White)
                         }
                     }
                 }
