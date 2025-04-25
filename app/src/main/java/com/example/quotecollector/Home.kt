@@ -49,6 +49,7 @@ import com.example.quotecollector.components.AddNewQuoteCard
 import com.example.quotecollector.components.Background
 import com.example.quotecollector.components.CategoryItem
 import com.example.quotecollector.components.DeleteConfirmationDialog
+import com.example.quotecollector.components.FindQuoteByCategoryDialog
 import com.example.quotecollector.components.HeaderSection
 import com.example.quotecollector.components.MenuOverlay
 import com.example.quotecollector.components.QuoteManagementOptions
@@ -95,6 +96,8 @@ fun HomePage(
     var selectedCategory by remember { mutableStateOf("Motivation") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+    var showFindQuoteByCategoryDialog by remember { mutableStateOf(false) }
+    var selectedQuote by remember { mutableStateOf<Quote?>(null) }
 
     // Context and coroutine scope
     val context = LocalContext.current
@@ -230,13 +233,9 @@ fun HomePage(
                         // Find Quote by ID Option
                         QuoteManagementOptions(
                             icon = Icons.Default.Search,
-                            text = "Find quote by ID",
+                            text = "Find quote by Category",
                             onClick = {
-                                Toast.makeText(
-                                    context,
-                                    "Feature coming soon!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                              showFindQuoteByCategoryDialog=true
                             }
                         )
 
@@ -268,6 +267,19 @@ fun HomePage(
             onLogout = {
                 onLogout()
                 showMenu = false
+            }
+        )
+    }
+    if (showFindQuoteByCategoryDialog) {
+        FindQuoteByCategoryDialog(
+            onDismiss = { showFindQuoteByCategoryDialog = false },
+            onQuoteSelected = { quote ->
+                selectedQuote = quote
+                Toast.makeText(
+                    context,
+                    "Selected quote by ${quote.author}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         )
     }
