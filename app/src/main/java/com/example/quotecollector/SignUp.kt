@@ -45,13 +45,13 @@ import com.example.quotecollector.ui.theme.Poppins
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
 import com.example.quotecollector.ui.theme.White
 
-class Login : ComponentActivity() {
+class SignUp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             QuoteCollectorTheme {
-               RegisterPage()
+                SignUpPage()
             }
         }
     }
@@ -59,7 +59,7 @@ class Login : ComponentActivity() {
 
 @Preview
 @Composable
-fun RegisterPage() {
+fun SignUpPage() {
     Background()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }

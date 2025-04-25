@@ -20,8 +20,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.quotecollector.Login
 import com.example.quotecollector.R
+import com.example.quotecollector.SignUp
+import com.example.quotecollector.SignUpPage
 import com.example.quotecollector.ui.theme.ItaliannoFont
 import com.example.quotecollector.ui.theme.White
 
@@ -65,7 +66,7 @@ fun SplashScreen() {
             CustomButton(
                 text = "Get Started",
                 onClick ={
-                    val intent= Intent(currentContext,Login::class.java)
+                    val intent= Intent(currentContext, SignUp::class.java)
                     currentContext.startActivity(intent)
                 },
                 width = Int.MAX_VALUE,
