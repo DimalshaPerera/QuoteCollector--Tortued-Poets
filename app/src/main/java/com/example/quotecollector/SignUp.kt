@@ -70,8 +70,9 @@ class SignUp : ComponentActivity() {
                         startActivity(intent)
                         finish()
                     },
-                    onRegistrationSuccess = {
+                    onRegistrationSuccess = { email ->
                         val intent = Intent(this, Home::class.java)
+                        intent.putExtra("USER_EMAIL", email)
                         startActivity(intent)
                         finish()
                     }
@@ -85,7 +86,7 @@ class SignUp : ComponentActivity() {
 @Composable
 fun SignUpPage(
     onNavigateToLogin: () -> Unit = {},
-    onRegistrationSuccess: () -> Unit = {}
+    onRegistrationSuccess: (String) -> Unit = {}
 ) {
     Background()
     var email by remember { mutableStateOf("") }
@@ -285,7 +286,7 @@ fun SignUpPage(
                                                 ).show()
 
                                                 // Navigate to home screen
-                                                onRegistrationSuccess()
+                                                onRegistrationSuccess(email)
                                             }
                                         }
                                     } else {

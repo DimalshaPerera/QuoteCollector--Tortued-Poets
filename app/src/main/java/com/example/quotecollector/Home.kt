@@ -10,38 +10,38 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
+import com.example.quotecollector.components.Background
+import com.example.quotecollector.ui.theme.Poppins
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
+import com.example.quotecollector.ui.theme.White
 
 class Home : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val userEmail = intent.getStringExtra("USER_EMAIL") ?: "Poet"
         enableEdgeToEdge()
         setContent {
             QuoteCollectorTheme {
-                Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+
+                HomePage(userEmail)
             }
         }
     }
 }
 
+@Preview
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun HomePage(userEmail: String = "Poet"){
+    Background()
     Text(
-        text = "Hello $name!",
-        modifier = modifier
+        text = "Welcome, ${userEmail.substringBefore('@')}!",
+        fontFamily = Poppins,
+        color = White,
+        fontSize = 24.sp,
+        textAlign = TextAlign.Center
     )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    QuoteCollectorTheme {
-        Greeting("Android")
-    }
 }
