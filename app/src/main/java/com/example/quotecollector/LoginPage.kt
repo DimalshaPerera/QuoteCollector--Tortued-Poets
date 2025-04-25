@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,7 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.example.quotecollector.api.RetrofitClient
 import com.example.quotecollector.components.Background
 import com.example.quotecollector.components.CustomButton
-import com.example.quotecollector.models.RegisterRequest
+import com.example.quotecollector.models.LoginRequest
 import com.example.quotecollector.ui.theme.ItaliannoFont
 import com.example.quotecollector.ui.theme.Poppins
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
@@ -57,24 +58,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SignUp : ComponentActivity() {
+class LoginPage : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             QuoteCollectorTheme {
-                SignUpPage(
-                    onNavigateToLogin = {
-                        val intent = Intent(this, LoginPage::class.java)
-                        startActivity(intent)
-                        finish()
-                    },
-                    onRegistrationSuccess = {
-                        val intent = Intent(this, Home::class.java)
-                        startActivity(intent)
-                        finish()
-                    }
-                )
+             Login(
+                 onNavigateToSignUp = {
+                     val intent = Intent(this, SignUp::class.java)
+                     startActivity(intent)
+                     finish()
+                 },
+                 onLoginSuccess = {
+                     val intent = Intent(this, Home::class.java)
+                     startActivity(intent)
+                     finish()
+                 }
+             )
             }
         }
     }
@@ -82,14 +83,13 @@ class SignUp : ComponentActivity() {
 
 @Preview
 @Composable
-fun SignUpPage(
-    onNavigateToLogin: () -> Unit = {},
-    onRegistrationSuccess: () -> Unit = {}
+fun Login(
+    onNavigateToSignUp: () -> Unit = {},
+    onLoginSuccess: () -> Unit = {}
 ) {
     Background()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -109,7 +109,6 @@ fun SignUpPage(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Image(
                 painter = painterResource(id = R.drawable.roman_figure),
                 contentDescription = "Classical image",
@@ -129,7 +128,7 @@ fun SignUpPage(
             // Email input
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Enter your email",
+                    text = "Email",
                     color = White.copy(alpha = 0.6f),
                     fontFamily = Poppins,
                     fontSize = 14.sp,
@@ -163,7 +162,7 @@ fun SignUpPage(
             // Password input
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Enter password",
+                    text = "Password",
                     color = White.copy(alpha = 0.6f),
                     fontFamily = Poppins,
                     fontSize = 14.sp,
@@ -193,41 +192,6 @@ fun SignUpPage(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Confirm Password input
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Confirm password",
-                    color = White.copy(alpha = 0.6f),
-                    fontFamily = Poppins,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    placeholder = { Text("••••••••••••", color = White.copy(alpha = 0.3f)) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = White.copy(alpha = 0.5f),
-                        unfocusedBorderColor = White.copy(alpha = 0.2f),
-                        focusedTextColor = White,
-                        unfocusedTextColor = White
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Confirm Password",
-                            tint = White.copy(alpha = 0.5f)
-                        )
-                    }
-                )
-            }
-
             // Display error message if any
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -244,7 +208,7 @@ fun SignUpPage(
             Spacer(modifier = Modifier.height(40.dp))
 
             CustomButton(
-                text = if (isLoading) "Registering..." else "Register",
+                text = if (isLoading) "Logging in..." else "Sign In",
                 onClick = {
                     // Validate inputs
                     when {
@@ -252,17 +216,15 @@ fun SignUpPage(
                         !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
                             errorMessage = "Please enter a valid email"
                         password.isBlank() -> errorMessage = "Password cannot be empty"
-                        password.length < 6 -> errorMessage = "Password must be at least 6 characters"
-                        password != confirmPassword -> errorMessage = "Passwords do not match"
                         else -> {
                             errorMessage = null
                             isLoading = true
 
-                            // Call the register API
+                            // Call the login API
                             scope.launch {
                                 try {
-                                    val request = RegisterRequest(email, password)
-                                    val response = RetrofitClient.apiService.register(request)
+                                    val request = LoginRequest(email, password)
+                                    val response = RetrofitClient.apiService.login(request)
 
                                     if (response.isSuccessful) {
                                         // Get response data
@@ -279,18 +241,18 @@ fun SignUpPage(
                                             withContext(Dispatchers.Main) {
                                                 Toast.makeText(
                                                     context,
-                                                    "Registration successful!",
+                                                    "Login successful!",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
 
                                                 // Navigate to home screen
-                                                onRegistrationSuccess()
+                                                onLoginSuccess()
                                             }
                                         }
                                     } else {
                                         // Handle error response
                                         val errorBody = response.errorBody()?.string() ?: "Unknown error"
-                                        errorMessage = "Registration failed: $errorBody"
+                                        errorMessage = "Login failed: $errorBody"
                                     }
                                 } catch (e: Exception) {
                                     // Handle network or other exceptions
@@ -315,7 +277,7 @@ fun SignUpPage(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Already a member?",
+                    text = "Not a member yet?",
                     color = White.copy(alpha = 0.6f),
                     fontSize = 14.sp,
                     fontFamily = Poppins
@@ -324,13 +286,13 @@ fun SignUpPage(
                 Spacer(modifier = Modifier.width(4.dp))
 
                 Text(
-                    text = "Sign in",
+                    text = "Sign up",
                     color = White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = Poppins,
                     modifier = Modifier.clickable {
-                        onNavigateToLogin()
+                        onNavigateToSignUp()
                     }
                 )
             }

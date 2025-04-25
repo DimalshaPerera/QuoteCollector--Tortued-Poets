@@ -2,4 +2,6 @@
     <string name="app_name">QuoteCollector</string>
     <string name="title_activity_login">Login</string>
     <string name="title_activity_sign_up">SignUp</string>
+    <string name="title_activity_login_page">LoginPage</string>
+    <string name="title_activity_home">Home</string>
 </resources>

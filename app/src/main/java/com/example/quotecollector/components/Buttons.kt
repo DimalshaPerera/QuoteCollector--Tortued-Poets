@@ -23,6 +23,7 @@ fun CustomButton(
     width: Int = 230,
     height: Int = 50,
     fontSize: Int = 16,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val buttonShape = RoundedCornerShape(4.dp)
@@ -41,6 +42,7 @@ fun CustomButton(
             contentColor = Color.Black
         ),
         shape = buttonShape,
+        enabled = enabled,
         modifier = buttonModifier
     ) {
         Text(
