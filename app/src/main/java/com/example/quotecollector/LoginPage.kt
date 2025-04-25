@@ -69,9 +69,10 @@ class LoginPage : ComponentActivity() {
                         startActivity(intent)
                         finish()
                     },
-                    onLoginSuccess = { email ->
+                    onLoginSuccess = { email, userId ->
                         val intent = Intent(this, Home::class.java)
                         intent.putExtra("USER_EMAIL", email)
+                        intent.putExtra("USER_ID", userId)
                         startActivity(intent)
                         finish()
                     }
@@ -85,7 +86,7 @@ class LoginPage : ComponentActivity() {
 @Composable
 fun Login(
     onNavigateToSignUp: () -> Unit = {},
-    onLoginSuccess: (String) -> Unit = {}
+    onLoginSuccess:(String, String) -> Unit = { _, _ -> }
 ) {
     Background()
     var email by remember { mutableStateOf("") }
@@ -249,7 +250,7 @@ fun Login(
                                                 ).show()
 
                                                 // Navigate to home screen
-                                                onLoginSuccess(user.email)
+                                                onLoginSuccess(user.email,user.id)
                                             }
                                         } else {
                                             errorMessage = "Invalid email or password"

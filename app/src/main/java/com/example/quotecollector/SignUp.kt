@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import com.example.quotecollector.api.RetrofitClient
 import com.example.quotecollector.components.Background
 import com.example.quotecollector.components.CustomButton
-import com.example.quotecollector.models.RegisterRequest
 import com.example.quotecollector.models.User
 import com.example.quotecollector.ui.theme.ItaliannoFont
 import com.example.quotecollector.ui.theme.Poppins
@@ -71,9 +70,10 @@ class SignUp : ComponentActivity() {
                         startActivity(intent)
                         finish()
                     },
-                    onRegistrationSuccess = { email ->
+                    onRegistrationSuccess = { email, userId ->
                         val intent = Intent(this, Home::class.java)
                         intent.putExtra("USER_EMAIL", email)
+                        intent.putExtra("USER_ID", userId)
                         startActivity(intent)
                         finish()
                     }
@@ -87,7 +87,7 @@ class SignUp : ComponentActivity() {
 @Composable
 fun SignUpPage(
     onNavigateToLogin: () -> Unit = {},
-    onRegistrationSuccess: (String) -> Unit = {}
+    onRegistrationSuccess: (String, String) -> Unit = { _, _ -> }
 ) {
     Background()
     var email by remember { mutableStateOf("") }
@@ -282,20 +282,18 @@ fun SignUpPage(
                                         password = password,
                                         id = "",
                                         token = ""
-
-
                                     )
                                     val response = RetrofitClient.apiService.register(user)
 
                                     if (response.isSuccessful) {
                                         // Get user data
-                                        val user = response.body()
-                                        if (user != null) {
+                                        val userData = response.body()
+                                        if (userData != null) {
                                             PreferenceHelper.saveUserData(
                                                 context,
                                                 email,
-                                                user.id,
-                                                user.id
+                                                userData.id,
+                                                userData.id
                                             )
 
                                             // Show a toast message
@@ -306,8 +304,8 @@ fun SignUpPage(
                                                     Toast.LENGTH_SHORT
                                                 ).show()
 
-                                                // Navigate to home screen
-                                                onRegistrationSuccess(email)
+                                                // Navigate to home screen with userId
+                                                onRegistrationSuccess(email, userData.id)
                                             }
                                         }
                                     } else {

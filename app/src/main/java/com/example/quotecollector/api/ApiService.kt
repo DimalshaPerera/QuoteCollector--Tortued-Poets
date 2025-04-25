@@ -43,7 +43,6 @@ interface ApiService {
     @GET("users")
     suspend fun login(@Query("email") email: String): Response<List<User>>
 
-    // Quote CRUD operations
     @GET("quotes")
     suspend fun getAllQuotes(): Response<List<Quote>>
 
@@ -65,4 +64,6 @@ interface ApiService {
     @DELETE("quotes/{id}")
     suspend fun deleteQuote(@Path("id") id: String): Response<Unit>
 
+    @DELETE("quotes")
+    suspend fun deleteAllQuotes(@Query("userId") userId: String): Response<Unit>
 }
