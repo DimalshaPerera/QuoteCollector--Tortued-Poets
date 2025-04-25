@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -26,8 +27,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.quotecollector.components.Background
+import com.example.quotecollector.components.CustomButton
+import com.example.quotecollector.components.SplashScreen
 import com.example.quotecollector.ui.theme.ItaliannoFont
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
+import com.example.quotecollector.ui.theme.White
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,41 +45,5 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun GUI() {
-    Background()
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Tortured Poets",
-                fontFamily =ItaliannoFont,
-                color = Color.White,
-                fontSize = 40.sp,
-                letterSpacing = 0.5.sp
-
-            )
-
-            Image(
-                painter = painterResource(id = R.drawable.roman_figure),
-                contentDescription = "Classical image",
-                modifier = Modifier.size(250.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(onClick = { }) {
-                Text("Get Started")
-            }
-        }
-    }
+    SplashScreen()
 }
