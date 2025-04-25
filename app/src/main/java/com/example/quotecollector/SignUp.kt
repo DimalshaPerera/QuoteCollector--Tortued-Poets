@@ -2,6 +2,7 @@ package com.example.quotecollector
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -291,10 +292,13 @@ fun SignUpPage(
                                         // Handle error response
                                         val errorBody = response.errorBody()?.string() ?: "Unknown error"
                                         errorMessage = "Registration failed: $errorBody"
+                                        errorMessage = "Registration failed: $errorBody"
+                                        Log.e("RegisterError", "Registration failed: $errorBody")
                                     }
                                 } catch (e: Exception) {
                                     // Handle network or other exceptions
                                     errorMessage = "Error: ${e.message ?: "Unknown error"}"
+                                    Log.e("RegisterException", "Exception during registration", e)
                                 } finally {
                                     isLoading = false
                                 }
