@@ -1,11 +1,13 @@
 package com.example.quotecollector.components
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -14,15 +16,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.quotecollector.Login
 import com.example.quotecollector.R
 import com.example.quotecollector.ui.theme.ItaliannoFont
 import com.example.quotecollector.ui.theme.White
 
 @Composable
 fun SplashScreen() {
+    val currentContext = LocalContext.current
     Background()
 
     Box(
@@ -59,8 +64,14 @@ fun SplashScreen() {
 
             CustomButton(
                 text = "Get Started",
-                onClick ={},
-                isGradient = true,
+                onClick ={
+                    val intent= Intent(currentContext,Login::class.java)
+                    currentContext.startActivity(intent)
+                },
+                width = Int.MAX_VALUE,
+                modifier = Modifier.fillMaxWidth()
+
+
             )
         }
     }
