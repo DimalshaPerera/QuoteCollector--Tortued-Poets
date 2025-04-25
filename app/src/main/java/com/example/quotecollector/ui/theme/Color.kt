@@ -19,5 +19,7 @@ val PurpleLight = Color(0xFF9C7CF6)
 val PurpleDark = Color(0xFF6B45E7)
 val BackgroundBlack = Color(0xFF121212)
 
-
+val darkBackground = Color(0xFF121212)
+val cardBackground = Color(0xFF1E1E1E)
+val surfaceVariant = Color(0xFF2D2D2D)
 val PurpleGradient = listOf(PurpleLight, PurpleDark)
