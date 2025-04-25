@@ -74,8 +74,15 @@ fun AllQuotesScreen(onBackPressed: () -> Unit) {
                     val response = RetrofitClient.apiService.getQuotesByUser(userId)
                     if (response.isSuccessful) {
                         quotes = response.body() ?: emptyList()
+
                     } else {
-                        errorMessage = "Failed to load quotes"
+
+                        if (response.code() == 404) {
+                            quotes = emptyList()
+
+                        } else {
+                            errorMessage = "Failed to load quotes: ${response.code()}"
+                        }
                     }
                 } catch (e: Exception) {
                     errorMessage = "Error: ${e.message}"
