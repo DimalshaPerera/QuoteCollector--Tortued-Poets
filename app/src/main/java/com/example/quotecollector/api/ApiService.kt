@@ -64,4 +64,5 @@ interface ApiService {
 
     @DELETE("quotes/{id}")
     suspend fun deleteQuote(@Path("id") id: String): Response<Unit>
+
 }
