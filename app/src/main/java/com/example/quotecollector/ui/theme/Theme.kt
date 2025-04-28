@@ -41,7 +41,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = DarkGray
 )
 
-// REMOVE the Typography definition from here since it's already in Type.kt
+
 
 @Composable
 fun QuoteCollectorTheme(
