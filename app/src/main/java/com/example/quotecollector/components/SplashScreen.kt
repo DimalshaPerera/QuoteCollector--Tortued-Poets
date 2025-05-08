@@ -1,6 +1,7 @@
 package com.example.quotecollector.components
 
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -29,6 +31,8 @@ import com.example.quotecollector.ui.theme.White
 @Composable
 fun SplashScreen() {
     val currentContext = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     Background()
 
     Box(
@@ -42,6 +46,7 @@ fun SplashScreen() {
                 .fillMaxSize()
                 .padding(24.dp)
                 .offset(y = (-20).dp),
+
             verticalArrangement = Arrangement.Center
 
         ) {
@@ -57,10 +62,13 @@ fun SplashScreen() {
             Image(
                 painter = painterResource(id = R.drawable.roman_figure),
                 contentDescription = "Classical image",
-                modifier = Modifier.size(280.dp)
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .size(280.dp)
             )
 
-            Spacer(modifier = Modifier.height(200.dp))
+
+            Spacer(modifier = Modifier.height(if (isLandscape) 40.dp else 200.dp))
 
 
             CustomButton(
