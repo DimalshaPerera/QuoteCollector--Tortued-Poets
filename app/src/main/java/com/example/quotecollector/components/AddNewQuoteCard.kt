@@ -27,7 +27,7 @@ import com.example.quotecollector.ui.theme.White
 import com.example.quotecollector.ui.theme.cardBackground
 import com.example.quotecollector.utils.PreferenceHelper
 import kotlinx.coroutines.launch
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun AddNewQuoteCard(
     onClose: () -> Unit,

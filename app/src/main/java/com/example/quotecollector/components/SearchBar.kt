@@ -1,8 +1,11 @@
 package com.example.quotecollector.components
+
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -10,17 +13,20 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.quotecollector.ui.theme.White
-@OptIn(ExperimentalMaterial3Api::class)
+
+
 @Composable
 fun SearchBar(
     searchQuery: String,
-    onSearchQueryChange: (String) -> Unit
+    onSearchQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit = {}
 ) {
     OutlinedTextField(
         value = searchQuery,
@@ -40,7 +46,12 @@ fun SearchBar(
             )
         },
         trailingIcon = {
-            Row {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clickable { onFilterClick() }
+                    .padding(8.dp)
+            ) {
                 Text(
                     text = "Filter by",
                     color = White.copy(alpha = 0.7f),
@@ -48,7 +59,7 @@ fun SearchBar(
                     modifier = Modifier.padding(end = 4.dp)
                 )
                 Icon(
-                    imageVector = Icons.Default.Search,
+                    imageVector = Icons.Default.MoreVert,
                     contentDescription = "Filter",
                     tint = White.copy(alpha = 0.7f)
                 )

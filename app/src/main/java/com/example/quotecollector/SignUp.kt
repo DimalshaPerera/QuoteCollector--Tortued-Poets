@@ -278,6 +278,16 @@ fun SignUpPage(
                             isLoading = true
                             scope.launch {
                                 try {
+                                    val existingUsersResponse = RetrofitClient.apiService.checkEmailExists(email)
+
+                                    if (existingUsersResponse.isSuccessful &&
+                                        (existingUsersResponse.body()?.isNotEmpty() == true)) {
+
+                                        errorMessage = "Email already registered. Please use a different email or sign in."
+                                        hasError = true
+                                        isLoading = false
+                                        return@launch
+                                    }
                                     val user = User(
                                         email = email,
                                         password = password,

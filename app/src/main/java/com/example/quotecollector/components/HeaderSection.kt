@@ -56,7 +56,7 @@ fun HeaderSection(
             Spacer(modifier = Modifier.width(12.dp))
 
             Text(
-                text = "\"Welcome, ${userEmail.substringBefore('@')}!\"",
+                text = "Welcome, ${userEmail.substringBefore('@')}!",
                 fontFamily = Poppins,
                 color = White,
                 fontSize = 18.sp,

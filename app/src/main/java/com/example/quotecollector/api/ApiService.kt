@@ -1,11 +1,7 @@
 
 package com.example.quotecollector.api
 
-import com.example.quotecollector.models.LoginRequest
-import com.example.quotecollector.models.LoginResponse
 import com.example.quotecollector.models.Quote
-import com.example.quotecollector.models.RegisterRequest
-import com.example.quotecollector.models.RegisterResponse
 import com.example.quotecollector.models.User
 import retrofit2.Response
 import retrofit2.http.Body
@@ -22,6 +18,9 @@ interface ApiService {
 
     @GET("users")
     suspend fun login(@Query("email") email: String): Response<List<User>>
+
+    @GET("users")
+    suspend fun checkEmailExists(@Query("email") email: String): Response<List<User>>
 
     @GET("quotes")
     suspend fun getAllQuotes(): Response<List<Quote>>

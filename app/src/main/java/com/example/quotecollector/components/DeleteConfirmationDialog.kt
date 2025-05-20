@@ -21,15 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.quotecollector.ui.theme.Black
-import com.example.quotecollector.ui.theme.DarkGray
-
-import com.example.quotecollector.ui.theme.White
-
+import com.example.quotecollector.ui.theme.*
 
 @Composable
 fun DeleteConfirmationDialog(
@@ -44,7 +39,7 @@ fun DeleteConfirmationDialog(
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = DarkGray
+                containerColor = cardBackground
             )
         ) {
             Column(
@@ -70,7 +65,7 @@ fun DeleteConfirmationDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 if (isLoading) {
-                    CircularProgressIndicator(color = White)
+                    CircularProgressIndicator(color = PurpleLight)
                 } else {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -79,7 +74,7 @@ fun DeleteConfirmationDialog(
                         Button(
                             onClick = onDismiss,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Black
+                                containerColor = DarkGray
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
@@ -91,7 +86,7 @@ fun DeleteConfirmationDialog(
                         Button(
                             onClick = onConfirm,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Red
+                                containerColor = Color(0xFFE53935)
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {

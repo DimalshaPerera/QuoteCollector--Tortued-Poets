@@ -1,7 +1,5 @@
 package com.example.quotecollector
 
-
-
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -10,33 +8,28 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,14 +37,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.quotecollector.api.RetrofitClient
-import com.example.quotecollector.api.RetrofitClient.apiService
 import com.example.quotecollector.components.AddNewQuoteCard
 import com.example.quotecollector.components.Background
-import com.example.quotecollector.components.CategoryItem
+import com.example.quotecollector.components.Card
 import com.example.quotecollector.components.DeleteConfirmationDialog
 import com.example.quotecollector.components.FindQuoteByCategoryDialog
 import com.example.quotecollector.components.HeaderSection
 import com.example.quotecollector.components.MenuOverlay
+import com.example.quotecollector.components.QuoteCard
 import com.example.quotecollector.components.QuoteManagementOptions
 import com.example.quotecollector.components.QuoteOfTheDayCard
 import com.example.quotecollector.components.SearchBar
@@ -59,7 +52,6 @@ import com.example.quotecollector.models.Quote
 import com.example.quotecollector.ui.theme.QuoteCollectorTheme
 import com.example.quotecollector.ui.theme.White
 import kotlinx.coroutines.launch
-import kotlin.math.log
 
 class Home : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,13 +68,14 @@ class Home : ComponentActivity() {
                         val intent = Intent(this, LoginPage::class.java)
                         startActivity(intent)
                         finish()
-                    })
+                    }
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun HomePage(
     userEmail: String = "Poet",
@@ -90,14 +83,16 @@ fun HomePage(
     onLogout: () -> Unit = {}
 ) {
     // State variables
-    var searchQuery by remember { mutableStateOf("") }
-    var showMenu by remember { mutableStateOf(false) }
-    var showAddQuoteCard by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf("Motivation") }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var searchQuery by rememberSaveable  { mutableStateOf("") }
+    var showMenu by rememberSaveable  { mutableStateOf(false) }
+    var showAddQuoteCard by rememberSaveable  { mutableStateOf(false) }
+    var selectedCategory by rememberSaveable  { mutableStateOf("Motivation") }
+    var showDeleteConfirmation by rememberSaveable  { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var showFindQuoteByCategoryDialog by remember { mutableStateOf(false) }
-    var selectedQuote by remember { mutableStateOf<Quote?>(null) }
+    var showFindQuoteByCategoryDialog by rememberSaveable  { mutableStateOf(false) }
+    var selectedQuote by remember  { mutableStateOf<Quote?>(null) }
+    var quotes by remember { mutableStateOf<List<Quote>>(emptyList()) }
+    var filteredQuotes by remember { mutableStateOf<List<Quote>>(emptyList()) }
 
     // Context and coroutine scope
     val context = LocalContext.current
@@ -105,13 +100,40 @@ fun HomePage(
 
     val apiService = RetrofitClient.apiService
 
-    // Sample categories
-    val categories = listOf(
-        "Motivation" to Icons.Default.Star,
-        "Love" to Icons.Default.Favorite,
-        "My quote collection" to Icons.Default.List,
-        "Add new category" to Icons.Default.Add
-    )
+    // Function to load quotes
+    val loadQuotes = {
+        scope.launch {
+            try {
+                val response = apiService.getQuotesByUser(userId)
+                if (response.isSuccessful) {
+                    quotes = response.body() ?: emptyList()
+                    filteredQuotes = quotes
+                } else {
+                    Toast.makeText(context, "Failed to load quotes: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("LoadQuotes", "Error loading quotes", e)
+            }
+        }
+    }
+
+    // Load quotes when the composable first enters composition
+    LaunchedEffect(userId) {
+        loadQuotes()
+    }
+
+    // Function to filter quotes by text search
+    val filterQuotesByTextSearch = { query: String ->
+        if (query.isBlank()) {
+            filteredQuotes = quotes
+        } else {
+            filteredQuotes = quotes.filter { quote ->
+                quote.text?.contains(query, ignoreCase = true) == true ||
+                        quote.author?.contains(query, ignoreCase = true) == true
+            }
+        }
+    }
 
     // Sample quote of the day
     val quoteOfTheDay = remember {
@@ -123,6 +145,7 @@ fun HomePage(
             userId = "1"
         )
     }
+
     val deleteAllQuotes = {
         scope.launch {
             isLoading = true
@@ -140,6 +163,7 @@ fun HomePage(
                     }
 
                     Toast.makeText(context, "Deleted $deleteCount quotes successfully!", Toast.LENGTH_SHORT).show()
+                    loadQuotes() // Reload quotes after deletion
                 } else {
                     Toast.makeText(context, "Failed to fetch quotes: ${quotesResponse.code()}", Toast.LENGTH_SHORT).show()
                 }
@@ -183,7 +207,13 @@ fun HomePage(
             item {
                 SearchBar(
                     searchQuery = searchQuery,
-                    onSearchQueryChange = { searchQuery = it }
+                    onSearchQueryChange = { newQuery ->
+                        searchQuery = newQuery
+                        filterQuotesByTextSearch(newQuery)
+                    },
+                    onFilterClick = {
+                        showFindQuoteByCategoryDialog = true
+                    }
                 )
             }
 
@@ -198,6 +228,7 @@ fun HomePage(
                     AddNewQuoteCard(
                         onClose = { showAddQuoteCard = false },
                         onSave = { quote ->
+                            loadQuotes()
                             Toast.makeText(
                                 context,
                                 "Quote saved successfully!",
@@ -220,7 +251,7 @@ fun HomePage(
             }
 
             item {
-                com.example.quotecollector.components.Card(
+                Card(
                     title = "Quote Management",
                     content = {
                         // Add New Quote Option
@@ -235,7 +266,7 @@ fun HomePage(
                             icon = Icons.Default.Search,
                             text = "Find quote by Category",
                             onClick = {
-                              showFindQuoteByCategoryDialog=true
+                                showFindQuoteByCategoryDialog = true
                             }
                         )
 
@@ -257,6 +288,71 @@ fun HomePage(
                     }
                 )
             }
+
+            // Search Results
+            item {
+                Text(
+                    text = "Search Results",
+                    color = White,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                )
+            }
+
+            // Display search results
+            if (searchQuery.isNotBlank()) {
+                if (filteredQuotes.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No quotes found matching '$searchQuery'",
+                            color = White.copy(alpha = 0.7f),
+                            fontSize = 14.sp
+                        )
+                    }
+                } else {
+                    items(filteredQuotes) { quote ->
+                        QuoteCard(
+                            quote = quote,
+                            onEdit = { /* Handle edit */ },
+                            onDelete = {
+                                scope.launch {
+                                    try {
+                                        val response = apiService.deleteQuote(quote.id ?: "")
+                                        if (response.isSuccessful) {
+                                            Toast.makeText(
+                                                context,
+                                                "Quote deleted successfully!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            loadQuotes() // Reload quotes after deletion
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Failed to delete quote: ${response.code()}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Error: ${e.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            } else {
+                item {
+                    Text(
+                        text = "Enter text to search quotes by content or author",
+                        color = White.copy(alpha = 0.7f),
+                        fontSize = 14.sp
+                    )
+                }
+            }
         }
     }
 
@@ -270,6 +366,8 @@ fun HomePage(
             }
         )
     }
+
+    // Category filter dialog
     if (showFindQuoteByCategoryDialog) {
         FindQuoteByCategoryDialog(
             onDismiss = { showFindQuoteByCategoryDialog = false },

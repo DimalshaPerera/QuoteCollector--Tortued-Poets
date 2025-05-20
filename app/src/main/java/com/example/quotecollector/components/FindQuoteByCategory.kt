@@ -1,7 +1,5 @@
 package com.example.quotecollector.components
 
-
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,9 +16,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.quotecollector.api.RetrofitClient
 import com.example.quotecollector.models.Quote
+import com.example.quotecollector.ui.theme.*
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun FindQuoteByCategoryDialog(
     onDismiss: () -> Unit,
@@ -42,7 +41,10 @@ fun FindQuoteByCategoryDialog(
                 .fillMaxWidth()
                 .heightIn(min = 200.dp, max = 500.dp)
                 .padding(16.dp),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = cardBackground
+            )
         ) {
             Column(
                 modifier = Modifier
@@ -54,6 +56,7 @@ fun FindQuoteByCategoryDialog(
                     text = "Find Quotes by Category",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    color = White,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -64,8 +67,17 @@ fun FindQuoteByCategoryDialog(
                         errorMessage = ""
                         hasSearched = false
                     },
-                    label = { Text("Category") },
+                    label = { Text("Category", color = Color.LightGray) },
                     singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PurpleLight,
+                        unfocusedBorderColor = DarkGray,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        cursorColor = PurpleLight,
+                        focusedContainerColor = surfaceVariant,
+                        unfocusedContainerColor = surfaceVariant
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp)
@@ -84,6 +96,7 @@ fun FindQuoteByCategoryDialog(
                     Text(
                         text = "Found ${foundQuotes.size} quotes",
                         fontSize = 14.sp,
+                        color = Color.LightGray,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
 
@@ -106,6 +119,7 @@ fun FindQuoteByCategoryDialog(
                     Text(
                         text = "No quotes found for this category",
                         fontSize = 14.sp,
+                        color = Color.LightGray,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -118,9 +132,11 @@ fun FindQuoteByCategoryDialog(
                 ) {
                     Button(
                         onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = DarkGray
+                        )
                     ) {
-                        Text("Cancel")
+                        Text("Cancel", color = White)
                     }
 
                     Button(
@@ -133,33 +149,42 @@ fun FindQuoteByCategoryDialog(
                             coroutineScope.launch {
                                 isLoading = true
                                 try {
-                                    // Get all quotes and filter by category
-                                    val response = apiService.getAllQuotes()
+                                    val response = apiService.filterQuotesByCategory(category)
                                     if (response.isSuccessful) {
-                                        val allQuotes = response.body() ?: emptyList()
-                                        foundQuotes = allQuotes.filter {
-                                            it.category?.equals(category, ignoreCase = true) == true
-                                        }
+                                        foundQuotes = response.body() ?: emptyList()
                                         hasSearched = true
+
+                                        if (foundQuotes.isEmpty()) {
+                                            errorMessage = "No quotes found for category '$category'"
+                                        }
                                     } else {
-                                        errorMessage = "Error: ${response.code()}"
+                                        when (response.code()) {
+                                            404 -> errorMessage = "Category '$category' not found"
+                                            500 -> errorMessage = "Server error. Please try again later."
+                                            else -> errorMessage = "Couldn't retrieve quotes. Please try again."
+                                        }
                                     }
                                 } catch (e: Exception) {
-                                    errorMessage = "Error: ${e.message}"
+                                    errorMessage = "Connection error. Please check your internet and try again."
                                 } finally {
                                     isLoading = false
                                 }
+
                             }
                         },
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PurpleDark,
+                            disabledContainerColor = PurpleDark.copy(alpha = 0.5f)
+                        )
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = Color.White
+                                color = White
                             )
                         } else {
-                            Text("Search")
+                            Text("Search", color = White)
                         }
                     }
                 }
